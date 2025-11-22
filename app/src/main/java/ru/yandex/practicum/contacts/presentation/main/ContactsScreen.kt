@@ -22,6 +22,7 @@ import ru.yandex.practicum.contacts.presentation.country.CountryCodeBottomSheet
 import ru.yandex.practicum.contacts.presentation.messengers.MessengersBottomSheet
 import ru.yandex.practicum.contacts.presentation.sorting.SortBottomSheet
 import ru.yandex.practicum.contacts.presentation.ui.components.ContactItem
+import ru.yandex.practicum.contacts.data.models.MessagingApp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -34,13 +35,18 @@ fun ContactsScreen(
     var showSortBottomSheet by remember { mutableStateOf(false) }
     var showFilterBottomSheet by remember { mutableStateOf(false) }
     var showCountryCodeBottomSheet by remember { mutableStateOf(false) }
-    
+
+    // Исправление: используем entries вместо values() для Kotlin 1.9+
+    val messagingApps = remember {
+        MessagingApp.entries
+    }
+
     LaunchedEffect(permissionState.status.isGranted) {
         if (permissionState.status.isGranted) {
             viewModel.onPermissionGranted()
         }
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,15 +55,15 @@ fun ContactsScreen(
                     IconButton(onClick = { showSortBottomSheet = true }) {
                         Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = stringResource(R.string.menu_sort))
                     }
-                    
+
                     IconButton(onClick = { showFilterBottomSheet = true }) {
                         Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.menu_filter))
                     }
-                    
+
                     IconButton(onClick = { showCountryCodeBottomSheet = true }) {
                         Icon(Icons.Default.Language, contentDescription = stringResource(R.string.menu_country))
                     }
-                    
+
                     IconButton(onClick = { viewModel.toggleSearchVisibility() }) {
                         Icon(Icons.Default.Search, contentDescription = stringResource(R.string.menu_search))
                     }
@@ -104,7 +110,7 @@ fun ContactsScreen(
                                 }
                             )
                         }
-                        
+
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
@@ -119,7 +125,8 @@ fun ContactsScreen(
             }
         }
     }
-    
+
+    // Исправление: убрали лишние присваивания, которые никогда не читаются
     if (showSortBottomSheet) {
         SortBottomSheet(
             currentSortOrder = viewModel.sortOrder,
@@ -130,9 +137,10 @@ fun ContactsScreen(
             onDismiss = { showSortBottomSheet = false }
         )
     }
-    
+
     if (showFilterBottomSheet) {
         MessengersBottomSheet(
+            messagingApps = messagingApps,
             selectedApps = viewModel.selectedMessagingApps,
             onAppsSelected = { apps ->
                 viewModel.updateSelectedMessagingApps(apps)
@@ -141,7 +149,7 @@ fun ContactsScreen(
             onDismiss = { showFilterBottomSheet = false }
         )
     }
-    
+
     if (showCountryCodeBottomSheet) {
         CountryCodeBottomSheet(
             selectedCodes = viewModel.selectedCountryCodes,
